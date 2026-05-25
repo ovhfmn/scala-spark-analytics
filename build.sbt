@@ -12,6 +12,7 @@ lazy val root = (project in file("."))
       "org.apache.spark" %% "spark-core" % sparkVersion,
       "org.apache.spark" %% "spark-sql" % sparkVersion,
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+      "io.delta" %% "delta-spark" % "3.2.0"
     ),
 
     javaOptions ++= Seq(
