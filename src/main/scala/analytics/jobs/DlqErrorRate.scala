@@ -9,12 +9,18 @@ object DlqErrorRate {
     val knownTypes = Set("AccountCreated", "AccountDebited", "AccountCredited")
 
     val totalByDay = events
+      .filter(col("date").isNotNull)
+      .filter(col("eventType").isin(knownTypes.toSeq: _*))
       .groupBy("date")
       .agg(count("*").alias("totalEvents"))
 
     val dlqByDay = events
       .filter(isMalformed(knownTypes))
-      .groupBy("date")
+      .withColumn("dlqDate", coalesce(
+        to_date(col("ts")),
+        to_date(to_timestamp(col("ingestedAt")))
+      ))
+      .groupBy(col("dlqDate").alias("date"))
       .agg(count("*").alias("dlqEvents"))
 
     totalByDay
