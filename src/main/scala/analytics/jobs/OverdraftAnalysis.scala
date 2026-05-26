@@ -3,7 +3,7 @@ package analytics.jobs
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 
-private[jobs] case class OverdraftRow(
+private[this] case class OverdraftRow(
                                        accountId: String,
                                        runningBalance: java.math.BigDecimal,
                                        eventType: String,
@@ -12,16 +12,35 @@ private[jobs] case class OverdraftRow(
                                        delta: java.math.BigDecimal
                                      )
 
+/** Identifies accounts that crossed the zero balance threshold.
+ *
+ * Uses a typed Dataset[OverdraftRow] layer for initial filtering and
+ * typed reduceGroups for per-account aggregation — demonstrating Spark's
+ * Dataset API alongside the DataFrame API used in other jobs.
+ *
+ * Input:  BalanceTrends Delta output → output/balance-trends/
+ * Output: output/overdraft-analysis/
+ */
 object OverdraftAnalysis {
 
-
+  /**
+   * Computes per account:
+   *   - overdraftStartedAt: first moment balance went negative
+   *   - lastPositiveAt:     last positive balance before overdraft
+   *   - maxOverdraftDepth:  deepest negative balance reached
+   *   - hoursInOverdraft:   duration from last positive to first negative
+   *   - recovered:          whether the account returned to positive balance
+   *
+   * @param events Delta output produced by [[analytics.jobs.BalanceTrends]]
+   * @param spark
+   * @return accountId lastPositiveAt overdraftStartedAt maxOverdraftDepth hoursInOverdraft latestBalance recovered
+   */
   def run(events: DataFrame)(implicit spark: SparkSession): DataFrame = {
     import spark.implicits._
 
     val overdraftEntries: Dataset[OverdraftRow] = events
       .filter(col("runningBalance") < 0)
       .as[OverdraftRow]
-
 
     val firstOverdraft = overdraftEntries
       .filter(col("runningBalance") < 0)

@@ -3,8 +3,23 @@ package analytics.jobs
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, DataFrame}
 
+/** Computes daily malformed event rate against total valid event volume.
+ *
+ * Identifies malformed events by unknown eventType, null accountId,
+ * or null ts. Malformed events are dated by ingestedAt rather than
+ * occurredAt — the event's own timestamp cannot be trusted when the
+ * payload is broken.
+ *
+ * Input:  raw events DataFrame from [[analytics.schema.EventSchema]]
+ * Output: output/dlq-error-rate/
+ */
 object DlqErrorRate {
 
+  /**
+   *
+   * @param events raw events DataFrame produced by [[analytics.schema.EventSchema]]
+   * @return DataFrame w/ columns: date totalEvents dlqEvents errorRatePct
+   */
   def run(implicit events: DataFrame): DataFrame = {
     val knownTypes = Set("AccountCreated", "AccountDebited", "AccountCredited")
 

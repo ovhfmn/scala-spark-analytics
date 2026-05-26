@@ -1,10 +1,25 @@
 package analytics.jobs
 
 import org.apache.spark.sql.DataFrame
-import org.apache.spark.sql.functions.{col, lit, min, percentile, unix_timestamp}
+import org.apache.spark.sql.functions._
 
+/** Measures time from account creation to first activity (debit or credit).
+ *
+ * Reports activation latency distribution via median, p90, and p99.
+ * Accounts that were created but never activated are preserved in the
+ * per-account output with null firstActivityAt — they contribute to
+ * activation rate analysis but are excluded from latency percentiles.
+ *
+ * Input:  raw events DataFrame from [[analytics.schema.EventSchema]]
+ * Output: output/account-activation/
+ */
 object AccountActivation {
 
+  /**
+   *
+   * @param events raw events DataFrame produced by [[analytics.schema.EventSchema]]
+   * @return DataFrame w/ columns: median_hours p90_hours p99_hours
+   */
   def run(implicit events: DataFrame): DataFrame = {
     val createdAt = events
       .filter(col("eventType") === "AccountCreated")
