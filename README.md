@@ -163,7 +163,7 @@ dt.history().show()
 - **Single-node Spark** — `local[*]` mode; no cluster deployment demonstrated
 - **DlqErrorRate denominator** — total events include malformed events, making error rate a slight overestimate; documented known approximation
 - **No schema registry** — schema evolution is manual; Avro + Schema Registry is the planned upgrade path
-
+- **Domain model uses String for Spark Encoder compatibility** — UUID and Instant are not natively serialisable by Spark's reflection-based Encoder
 ---
 
 ## Interview Q&A
