@@ -20,6 +20,8 @@ lazy val root = (project in file("."))
     ),
 
     javaOptions ++= Seq(
+      "--add-opens=java.base/java.util=ALL-UNNAMED",
+      "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
       "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
       "--add-opens=java.base/java.nio=ALL-UNNAMED",
       "-Dspark.driver.bindAddress=127.0.0.1",
@@ -33,16 +35,6 @@ lazy val root = (project in file("."))
       case "reference.conf" => MergeStrategy.concat
       case x => MergeStrategy.first
     },
-
-//    assembly / assemblyExcludedJars := {
-//      val cp = (fullClasspath in assembly).value
-//      cp filter { f =>
-//        val name = f.data.getName
-//         Exclude logging jars
-//          name.startsWith("slf4j") ||
-//          name.startsWith("log4j")
-//      }
-//    },
 
     assembly / mainClass := Some("analytics.Main")
   )
